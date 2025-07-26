@@ -9,7 +9,7 @@ import pygame
 pygame.mixer.init()
 
 # Lista de símbolos do "tigrinho"
-SYMBOLS = ['🐯', '🍒', '💰', '⭐', '7️⃣', '🍀']
+SYMBOLS = ['🐯', '🍒', '💰', '⭐', '', '🍀']
 user_balance = 300
 house_profit = 300000
 
@@ -22,7 +22,7 @@ def tocar_audio_derrota():
 
 def mostrar_derrota():
     derrota_janela = tk.Toplevel()
-    derrota_janela.title("Você foi de base 🐅")
+    derrota_janela.title("Você perdeu tudo!")
     derrota_janela.geometry("300x350")
     
     img = Image.open("tigrinho_L.jpeg")
@@ -109,7 +109,6 @@ def girar():
             user_balance_update(-aposta)
             if user_balance <= 0:
                 user_balance_label.config(text="Saldo: R$0.00")
-                mostrar_derrota()
             return
 
         lucro = ganho - aposta
@@ -121,7 +120,14 @@ def girar():
 def user_balance_update(value):
     global user_balance
     user_balance += value
-    user_balance_label.config(text=f"Saldo: R${user_balance:.2f}")
+    # Arredonda para evitar valores residuais
+    user_balance = round(user_balance, 2)
+    if user_balance < 0.01:
+        user_balance = 0.0
+        user_balance_label.config(text="Saldo: R$0.00")
+        mostrar_derrota()
+    else:
+        user_balance_label.config(text=f"Saldo: R${user_balance:.2f}")
 
 # Interface Gráfica
 root = tk.Tk()
