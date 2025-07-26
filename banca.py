@@ -8,8 +8,16 @@ import pygame
 # Inicializa o mixer de som
 pygame.mixer.init()
 
-# Lista de símbolos do "tigrinho"
-SYMBOLS = ['🐯', '🍒', '💰', '⭐', '', '🍀']
+# Lista de caminhos das imagens dos símbolos
+SYMBOL_IMAGES_PATHS = [
+    "img/tigre.png",
+    "img/cereja.png",
+    "img/dinheiro.png",
+    "img/estrela.png",
+    "img/sete.png",
+    "img/trevo.png"
+]
+
 user_balance = 300
 house_profit = 300000
 
@@ -22,10 +30,10 @@ def tocar_audio_derrota():
 
 def mostrar_derrota():
     derrota_janela = tk.Toplevel()
-    derrota_janela.title("Você perdeu tudo!")
-    derrota_janela.geometry("300x350")
+    derrota_janela.title("Perdeu tudo!")
+    derrota_janela.geometry("420x430")
     
-    img = Image.open("tigrinho_L.jpeg")
+    img = Image.open("img/tigrinho_L.jpeg")
     img = img.resize((200, 200))
     photo = ImageTk.PhotoImage(img)
     
@@ -33,21 +41,26 @@ def mostrar_derrota():
     label_img.image = photo
     label_img.pack(pady=10)
     
-    label_msg = tk.Label(derrota_janela, text="Você zerou a banca!\nFaz o L! 💀", font=("Arial", 14), fg="red")
+    label_msg = tk.Label(derrota_janela, text="Você zerou a banca!\nFaz o L!", font=("Arial", 14), fg="red")
     label_msg.pack(pady=10)
     
     tocar_audio_derrota()
 
 def animar_slots(slots_labels, resultado_final, callback):
-    def animar():
-        for _ in range(10):
-            for label in slots_labels:
-                label.config(text=random.choice(SYMBOLS))
-            time.sleep(0.1)
-        for i in range(3):
-            slots_labels[i].config(text=resultado_final[i])
-        callback()
-    threading.Thread(target=animar).start()
+    def animar_passos(passos):
+        if passos > 0:
+            for i, label in enumerate(slots_labels):
+                idx = random.randint(0, len(SYMBOL_IMAGES) - 1)
+                label.config(image=SYMBOL_IMAGES[idx])
+                label.image = SYMBOL_IMAGES[idx]
+            root.after(100, animar_passos, passos - 1)
+        else:
+            for i in range(3):
+                idx = resultado_final[i]
+                slots_labels[i].config(image=SYMBOL_IMAGES[idx])
+                slots_labels[i].image = SYMBOL_IMAGES[idx]
+            callback()
+    animar_passos(10)
 
 def piscar_vitoria():
     def piscar():
@@ -86,7 +99,7 @@ def girar():
         multiplicador = random.uniform(1.0, 5.0)
 
     slots_labels = [slot1, slot2, slot3]
-    resultado_final = [random.choice(SYMBOLS) for _ in range(3)]
+    resultado_final = [random.randint(0, len(SYMBOL_IMAGES) - 1) for _ in range(3)]
 
     def processar_resultado():
         global house_profit
@@ -97,14 +110,14 @@ def girar():
 
         if jackpot:
             ganho = random.randint(50, 500)
-            resultado_label.config(text=f"💰 JACKPOT!!! Você ganhou R${ganho:.2f}!")
+            resultado_label.config(text=f"JACKPOT!!! Você ganhou R${ganho:.2f}!")
             piscar_vitoria()
         elif resultado < chance:
             ganho = aposta * multiplicador
-            resultado_label.config(text=f"🎉 Você GANHOU R${ganho:.2f}!")
+            resultado_label.config(text=f"Você GANHOU R${ganho:.2f}!")
             piscar_vitoria()
         else:
-            resultado_label.config(text=f"💸 Você PERDEU R${aposta:.2f}.")
+            resultado_label.config(text=f"Você PERDEU R${aposta:.2f}.")
             house_profit += aposta
             user_balance_update(-aposta)
             if user_balance <= 0:
@@ -131,38 +144,88 @@ def user_balance_update(value):
 
 # Interface Gráfica
 root = tk.Tk()
-root.title("🎰 Tigrinho Jackpot")
-root.geometry("420x430")
+root.title("Tigrinho Jackpot")
+root.geometry("500x500")
 root.resizable(False, False)
 root.configure(bg="white")
+
+# Carrega as imagens principais
+SYMBOL_IMAGES = [ImageTk.PhotoImage(Image.open(path).resize((64, 64))) for path in SYMBOL_IMAGES_PATHS]
+# Carrega miniaturas para o rodapé
+SYMBOL_THUMBS = [ImageTk.PhotoImage(Image.open(path).resize((24, 24))) for path in SYMBOL_IMAGES_PATHS]
 
 # Saldo e aposta
 user_balance_label = tk.Label(root, text=f"Saldo: R${user_balance:.2f}", font=("Arial", 14), bg="white")
 user_balance_label.pack(pady=10)
 
-tk.Label(root, text="Valor da Aposta:", font=("Arial", 12), bg="white").pack()
-entry_aposta = tk.Entry(root, font=("Arial", 12), justify="center")
-entry_aposta.pack(pady=5)
-
 # Slots
 slot_frame = tk.Frame(root, bg="white")
 slot_frame.pack(pady=20)
 
-slot1 = tk.Label(slot_frame, text='❓', font=("Arial", 36))
+slot1 = tk.Label(slot_frame, image=SYMBOL_IMAGES[0], bg="white")
 slot1.pack(side='left', padx=10)
 
-slot2 = tk.Label(slot_frame, text='❓', font=("Arial", 36))
+slot2 = tk.Label(slot_frame, image=SYMBOL_IMAGES[1], bg="white")
 slot2.pack(side='left', padx=10)
 
-slot3 = tk.Label(slot_frame, text='❓', font=("Arial", 36))
+slot3 = tk.Label(slot_frame, image=SYMBOL_IMAGES[2], bg="white")
 slot3.pack(side='left', padx=10)
-
-# Botão girar
-btn_girar = tk.Button(root, text="🎯 GIRAR", font=("Arial", 16), command=girar, bg="#ffae42")
-btn_girar.pack(pady=10)
 
 # Resultado
 resultado_label = tk.Label(root, text="", font=("Arial", 12), fg="blue", bg="white")
 resultado_label.pack(pady=10)
+
+tk.Label(root, text="Valor da Aposta:", font=("Arial", 12), bg="white").pack()
+entry_aposta = tk.Entry(root, font=("Arial", 12), justify="center")
+entry_aposta.pack(pady=2)
+entry_aposta.bind("<Return>", lambda event: girar())
+
+# Botão girar
+btn_girar = tk.Button(root, text="GIRAR", font=("Arial", 16), command=girar, bg="#ffae42")
+btn_girar.pack(pady=10)
+
+rodape_frame = tk.Frame(root, bg="white")
+rodape_frame.pack(side="bottom", pady=1)
+
+# Defina as combinações e prêmios (usando índices dos símbolos)
+combinacoes = [
+    ([4, 4, 4], "10x aposta"),      # 3x Sete
+    ([0, 0, 0], "JACKPOT"),         # 3x Tigre
+    ([2, 2, 2], "5x aposta"),       # 3x Dinheiro
+    ([5, 5, 5], "3x aposta"),       # 3x Trevo
+    ([3, 3, 3], "2x aposta"),       # 3x Estrela
+    ([1, 1, 1], "1.5x aposta"),     # 3x Cereja
+    ("2x iguais", "0.5x aposta"),
+    ("Outros", "perde"),
+]
+
+# Divide as combinações em duas colunas
+col1 = combinacoes[:4]  # Primeira metade
+col2 = combinacoes[4:]  # Segunda metade
+
+col_frame1 = tk.Frame(rodape_frame, bg="white")
+col_frame1.pack(side="left", padx=10, anchor="n")
+col_frame2 = tk.Frame(rodape_frame, bg="white")
+col_frame2.pack(side="left", padx=10, anchor="n")
+
+for comb, premio in col1:
+    linha = tk.Frame(col_frame1, bg="white")
+    linha.pack(anchor="w")
+    if isinstance(comb, list):
+        for idx in comb:
+            tk.Label(linha, image=SYMBOL_THUMBS[idx], bg="white").pack(side="left")
+        tk.Label(linha, text=f" = {premio}", font=("Arial", 9), fg="gray", bg="white").pack(side="left")
+    else:
+        tk.Label(linha, text=f"{comb} = {premio}", font=("Arial", 9), fg="gray", bg="white").pack(side="left")
+
+for comb, premio in col2:
+    linha = tk.Frame(col_frame2, bg="white")
+    linha.pack(anchor="w")
+    if isinstance(comb, list):
+        for idx in comb:
+            tk.Label(linha, image=SYMBOL_THUMBS[idx], bg="white").pack(side="left")
+        tk.Label(linha, text=f" = {premio}", font=("Arial", 9), fg="gray", bg="white").pack(side="left")
+    else:
+        tk.Label(linha, text=f"{comb} = {premio}", font=("Arial", 9), fg="gray", bg="white").pack(side="left")
 
 root.mainloop()
