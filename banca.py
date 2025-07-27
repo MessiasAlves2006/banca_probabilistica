@@ -29,21 +29,47 @@ def tocar_audio_derrota():
     pygame.mixer.music.play()
 
 def mostrar_derrota():
-    derrota_janela = tk.Toplevel()
-    derrota_janela.title("Perdeu tudo!")
-    derrota_janela.geometry("420x430")
-    
+    # Cria um frame sobreposto cobrindo toda a janela
+    derrota_frame = tk.Frame(root, bg="white")
+    derrota_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    # Imagem do tigre
     img = Image.open("img/tigrinho_L.jpeg")
     img = img.resize((200, 200))
     photo = ImageTk.PhotoImage(img)
-    
-    label_img = tk.Label(derrota_janela, image=photo)
+    label_img = tk.Label(derrota_frame, image=photo, bg="white")
     label_img.image = photo
     label_img.pack(pady=10)
-    
-    label_msg = tk.Label(derrota_janela, text="Você zerou a banca!\nFaz o L!", font=("Arial", 14), fg="red")
+
+    # Mensagem
+    label_msg = tk.Label(
+        derrota_frame,
+        text="Você zerou a banca!\nFaz o L!",
+        font=("Arial", 14),
+        fg="red",
+        bg="white"
+    )
     label_msg.pack(pady=10)
-    
+
+    # Botões
+    def depositar():
+        derrota_frame.destroy()
+        # Aqui você pode adicionar lógica para depósito, ex: abrir um popup ou resetar saldo
+        # Exemplo simples: adicionar saldo
+        global user_balance
+        user_balance = 300
+        user_balance_label.config(text=f"Saldo: R${user_balance:.2f}")
+
+    def sair():
+        root.destroy()
+
+    btn_depositar = tk.Button(derrota_frame, text="Depositar", font=("Arial", 12), command=depositar, bg="#4caf50", fg="white")
+    btn_depositar.pack(pady=5)
+
+    btn_sair = tk.Button(derrota_frame, text="Sair", font=("Arial", 12), command=sair, bg="#f44336", fg="white")
+    btn_sair.pack(pady=5)
+
+    # Toca o áudio
     tocar_audio_derrota()
 
 def animar_slots(slots_labels, resultado_final, callback):
