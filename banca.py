@@ -66,8 +66,10 @@ def mostrar_derrota():
     # Botões
     def depositar():
         derrota_frame.destroy()
+        # Aqui você pode adicionar lógica para depósito, ex: abrir um popup ou resetar saldo
+        # Exemplo simples: adicionar saldo
         global user_balance
-        user_balance = 100
+        user_balance = 300
         user_balance_label.config(text=f"Saldo: R${user_balance:.2f}")
 
     def sair():
@@ -107,20 +109,38 @@ def piscar_vitoria():
             time.sleep(0.1)
     threading.Thread(target=piscar).start()
 
+giro_em_andamento = False
+
 def girar():
-    global user_balance, house_profit
+    global user_balance, house_profit, giro_em_andamento
+
+    if giro_em_andamento:
+        return  # Impede múltiplos giros simultâneos
+
+    giro_em_andamento = True
+    entry_aposta.config(state="disabled")
+    btn_girar.config(state="disabled")
 
     try:
         aposta = float(entry_aposta.get())
     except ValueError:
         resultado_label.config(text="Aposta inválida!")
+        entry_aposta.config(state="normal")
+        btn_girar.config(state="normal")
+        giro_em_andamento = False
         return
 
     if aposta > user_balance:
         resultado_label.config(text="Saldo insuficiente!")
+        entry_aposta.config(state="normal")
+        btn_girar.config(state="normal")
+        giro_em_andamento = False
         return
     elif aposta <= 0:
         resultado_label.config(text="Aposta precisa ser maior que zero.")
+        entry_aposta.config(state="normal")
+        btn_girar.config(state="normal")
+        giro_em_andamento = False
         return
 
     # Define chance de vitória
@@ -138,7 +158,7 @@ def girar():
     resultado_final = [random.randint(0, len(SYMBOL_IMAGES) - 1) for _ in range(3)]
 
     def processar_resultado():
-        global house_profit
+        global house_profit, giro_em_andamento
         nonlocal resultado_final
         resultado = random.random()
         jackpot = random.random() < JACKPOT_CHANCE
@@ -164,11 +184,19 @@ def girar():
                 tocar_audio_perdeu_aposta()
             if user_balance <= 0:  
                 user_balance_label.config(text="Saldo: R$0.00")
+            # Reabilita controles ao final
+            entry_aposta.config(state="normal")
+            btn_girar.config(state="normal")
+            giro_em_andamento = False
             return
 
         lucro = ganho - aposta
         user_balance_update(lucro)
         house_profit -= lucro
+        # Reabilita controles ao final
+        entry_aposta.config(state="normal")
+        btn_girar.config(state="normal")
+        giro_em_andamento = False  # Libera para novo giro
 
     animar_slots(slots_labels, resultado_final, processar_resultado)
 
@@ -246,7 +274,7 @@ combinacoes = [
     ([1, 1, 1], "1.5x aposta"),     # 3x Cereja
     ("2x iguais", "0.5x aposta"),
     ("Outros", "perde"),
-]
+]   
 
 # Divide as combinações em duas colunas
 col1 = combinacoes[:4]  # Primeira metade
