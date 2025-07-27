@@ -30,7 +30,7 @@ bgMusic.play(loops=-1)
 
 def tocar_audio_derrota():
     pygame.mixer.music.load("faz_o_L.mp3")
-    pygame.mixer.music.play(loops=-1)
+    pygame.mixer.music.play()  # Remove loops=-1 para tocar só uma vez
 
 def tocar_audio_perdeu_aposta():
     pygame.mixer.music.load("perdeu.mp3")
@@ -41,21 +41,45 @@ def tocar_audio_jackpot():
     pygame.mixer.music.play()
 
 def mostrar_derrota():
-    derrota_janela = tk.Toplevel()
-    derrota_janela.title("Perdeu tudo!")
-    derrota_janela.geometry("720x720")
-    
+    # Cria um frame sobreposto cobrindo toda a janela
+    derrota_frame = tk.Frame(root, bg="white")
+    derrota_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    # Imagem do tigre
     img = Image.open("img/tigrinho_L.jpeg")
-    img = img.resize((600, 600))
+    img = img.resize((220, 220))
     photo = ImageTk.PhotoImage(img)
-    
-    label_img = tk.Label(derrota_janela, image=photo)
+    label_img = tk.Label(derrota_frame, image=photo, bg="white")
     label_img.image = photo
     label_img.pack(pady=10)
-    
-    label_msg = tk.Label(derrota_janela, text="Você zerou a banca!\nFaz o L!", font=("Arial", 30), fg="red")
+
+    # Mensagem
+    label_msg = tk.Label(
+        derrota_frame,
+        text="Você zerou a banca!\nFaz o L!",
+        font=("Arial", 18, "bold"),
+        fg="red",
+        bg="white"
+    )
     label_msg.pack(pady=10)
-    
+
+    # Botões
+    def depositar():
+        derrota_frame.destroy()
+        global user_balance
+        user_balance = 100
+        user_balance_label.config(text=f"Saldo: R${user_balance:.2f}")
+
+    def sair():
+        root.destroy()
+
+    btn_depositar = tk.Button(derrota_frame, text="Depositar", font=("Arial", 12), command=depositar, bg="#4caf50", fg="white", width=12)
+    btn_depositar.pack(pady=5)
+
+    btn_sair = tk.Button(derrota_frame, text="Sair", font=("Arial", 12), command=sair, bg="#f44336", fg="white", width=12)
+    btn_sair.pack(pady=5)
+
+    # Toca o áudio
     tocar_audio_derrota()
 
 def animar_slots(slots_labels, resultado_final, callback):
