@@ -19,29 +19,41 @@ SYMBOL_IMAGES_PATHS = [
 ]
 
 user_balance = 300
-house_profit = 300000
+house_profit = 0
 
 # JACKPOT: 5% de chance de ativar a qualquer rodada
 JACKPOT_CHANCE = 0.05
 
+#tocar musica de fundo
+bgMusic = pygame.mixer.Sound("musica.mp3")
+bgMusic.play(loops=-1)
+
 def tocar_audio_derrota():
     pygame.mixer.music.load("faz_o_L.mp3")
+    pygame.mixer.music.play(loops=-1)
+
+def tocar_audio_perdeu_aposta():
+    pygame.mixer.music.load("perdeu.mp3")
+    pygame.mixer.music.play()
+
+def tocar_audio_jackpot():
+    pygame.mixer.music.load("jackpot.mp3")
     pygame.mixer.music.play()
 
 def mostrar_derrota():
     derrota_janela = tk.Toplevel()
     derrota_janela.title("Perdeu tudo!")
-    derrota_janela.geometry("420x430")
+    derrota_janela.geometry("720x720")
     
     img = Image.open("img/tigrinho_L.jpeg")
-    img = img.resize((200, 200))
+    img = img.resize((600, 600))
     photo = ImageTk.PhotoImage(img)
     
     label_img = tk.Label(derrota_janela, image=photo)
     label_img.image = photo
     label_img.pack(pady=10)
     
-    label_msg = tk.Label(derrota_janela, text="Você zerou a banca!\nFaz o L!", font=("Arial", 14), fg="red")
+    label_msg = tk.Label(derrota_janela, text="Você zerou a banca!\nFaz o L!", font=("Arial", 30), fg="red")
     label_msg.pack(pady=10)
     
     tocar_audio_derrota()
@@ -112,15 +124,21 @@ def girar():
             ganho = random.randint(50, 500)
             resultado_label.config(text=f"JACKPOT!!! Você ganhou R${ganho:.2f}!")
             piscar_vitoria()
+            tocar_audio_jackpot()
+
         elif resultado < chance:
             ganho = aposta * multiplicador
             resultado_label.config(text=f"Você GANHOU R${ganho:.2f}!")
             piscar_vitoria()
+            tocar_audio_jackpot()
+
         else:
             resultado_label.config(text=f"Você PERDEU R${aposta:.2f}.")
             house_profit += aposta
             user_balance_update(-aposta)
-            if user_balance <= 0:
+            if user_balance > 0:
+                tocar_audio_perdeu_aposta()
+            if user_balance <= 0:  
                 user_balance_label.config(text="Saldo: R$0.00")
             return
 
@@ -141,6 +159,11 @@ def user_balance_update(value):
         mostrar_derrota()
     else:
         user_balance_label.config(text=f"Saldo: R${user_balance:.2f}")
+#def house_profit_update(value):
+#    global house_profit
+#    house_profit += value
+#    # Arredonda para evitar valores residuais
+#    user_balance = round(user_balance, 2)
 
 # Interface Gráfica
 root = tk.Tk()
@@ -148,6 +171,7 @@ root.title("Tigrinho Jackpot")
 root.geometry("500x500")
 root.resizable(False, False)
 root.configure(bg="white")
+
 
 # Carrega as imagens principais
 SYMBOL_IMAGES = [ImageTk.PhotoImage(Image.open(path).resize((64, 64))) for path in SYMBOL_IMAGES_PATHS]
@@ -159,6 +183,7 @@ user_balance_label = tk.Label(root, text=f"Saldo: R${user_balance:.2f}", font=("
 user_balance_label.pack(pady=10)
 
 # Slots
+#root.attributes('-transparentcolor', "white")
 slot_frame = tk.Frame(root, bg="white")
 slot_frame.pack(pady=20)
 
