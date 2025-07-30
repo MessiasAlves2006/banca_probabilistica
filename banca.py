@@ -144,10 +144,18 @@ def girar():
         return
 
     # Define chance de vitória
-    if aposta <= 5:
-        chance = 0.6
+
+    if aposta <= 1.5:
+        chance = 0.0
+        multiplicador = random.uniform(1.5, 3.0)
+    
+    elif aposta <= 5:
+        chance = 0.1
         multiplicador = random.uniform(1.5, 3.0)
     elif aposta <= 20:
+        chance = 0.2
+        multiplicador = random.uniform(1.2, 2.0)
+    elif aposta <= 70:
         chance = 0.4
         multiplicador = random.uniform(1.2, 2.0)
     else:
@@ -222,8 +230,12 @@ root = tk.Tk()
 root.title("Tigrinho Jackpot")
 root.geometry("500x500")
 root.resizable(False, False)
-root.configure(bg="white")
 
+# Carrega e define o background
+bg_img = Image.open("img/bg.jpg").resize((500, 500))
+bg_photo = ImageTk.PhotoImage(bg_img)
+bg_label = tk.Label(root, image=bg_photo)
+bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
 # Carrega as imagens principais
 SYMBOL_IMAGES = [ImageTk.PhotoImage(Image.open(path).resize((64, 64))) for path in SYMBOL_IMAGES_PATHS]
